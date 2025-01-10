@@ -2,8 +2,10 @@ import gsap from "gsap";
 import { useRef } from "react";
 import Button from "./Button";
 import AnimatedTitle from "./AnimatedTitle";
+import { useNavigate } from 'react-router-dom';
 
 const FloatingImage = () => {
+  const navigate = useNavigate();
   const frameRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -108,7 +110,7 @@ const FloatingImage = () => {
               id="realm-btn"
               title="Begin Your Journey"
               containerClass="mt-5"
-              onClick={() => window.location.href='/login'}
+              onClick={() => navigate('/home')} // Using React Router for navigation
             />
           </div>
         </div>
