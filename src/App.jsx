@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import About from "./components/About";
 import Hero from "./components/Hero";
 import NavBar from "./components/Navbar";
@@ -6,8 +7,11 @@ import Features from "./components/Features";
 import Story from "./components/Story";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import { auth, googleProvider } from "./firebaseConfig";
+import { signInWithPopup } from "firebase/auth";
 
-function App() {
+
+function Home() {
   const handleScroll = () => {
     const scrollPosition = window.scrollY;
     const sections = document.querySelectorAll("section");
@@ -44,6 +48,7 @@ function App() {
 
   return (
     <main className="relative min-h-screen w-screen overflow-x-hidden">
+
       <NavBar />
       <section
         id="hero"
@@ -60,7 +65,7 @@ function App() {
         className="min-h-screen"
       >
         <About />
-      </section>             
+      </section>
       <section
         id="features"
         data-scrollbar-color="#00ff00"
@@ -87,6 +92,75 @@ function App() {
       </section>
       <Footer />
     </main>
+  );
+}
+
+function Auth() {
+
+  const handleGoogleLogin = async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        console.log("User Info:", user);
+        alert(`Welcome, ${user.displayName}`);
+      } catch (error) {
+        console.error("Error during login:", error);
+        alert("Failed to log in. Please try again.");
+      }
+    };
+
+  return<div style={styles.container}>
+    <center>
+   <button onClick={handleGoogleLogin} style={styles.button}>
+        <img
+          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+          alt="Google Logo"
+          style={styles.icon}
+        />
+        Continue with Google
+      </button>
+      </center>
+</div>;
+}
+const styles = {
+  container: {
+    textAlign: "center",
+    marginTop: "50px",
+  },
+  button: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "10px 20px",
+    fontSize: "16px",
+    backgroundColor: "#4285F4",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+  icon: {
+    width: "20px",
+    marginRight: "10px",
+  },
+};
+
+function Chat() {
+
+  return <>
+  hey    
+  </>;
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/home" element={<Chat />} />
+      </Routes>
+    </Router>
   );
 }
 
