@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebaseConfig"; // Import Firebase auth
 import { signOut } from "firebase/auth";
+import ChatList from "./ChatList"; // Import ChatList component
 
 function HomeUi() {
   const [user, setUser] = useState(null); // State to store user info
@@ -32,11 +33,11 @@ function HomeUi() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col items-center justify-center space-y-4">
+    <div className="min-h-screen bg-gradient-to-b from-pink-200 to-purple-100 text-gray-800 flex flex-col items-center justify-center p-6 space-y-6 font-poppins">
       {user ? (
         <>
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-semibold">
+            <h1 className="text-2xl font-semibold text-white">
               Welcome, {user.displayName}!
             </h1>
             <button
@@ -46,11 +47,14 @@ function HomeUi() {
               Logout
             </button>
           </div>
-          <p className="text-lg">You are logged in with {user.email}.</p>
+          <p className="text-lg text-white">You are logged in with {user.email}.</p>
         </>
       ) : (
-        <p className="text-2xl font-semibold">Loading...</p>
+        <p className="text-2xl font-semibold text-white">Loading...</p>
       )}
+
+      {/* Chat List Component */}
+      <ChatList />
     </div>
   );
 }
