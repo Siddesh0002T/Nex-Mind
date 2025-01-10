@@ -9,7 +9,8 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import { auth, googleProvider } from "./firebaseConfig";
 import { signInWithPopup } from "firebase/auth";
-
+import { useNavigate } from "react-router-dom";
+import HomeUi from "./components/home/Home";
 
 function Home() {
   const handleScroll = () => {
@@ -97,17 +98,20 @@ function Home() {
 
 function Auth() {
 
+  const navigate = useNavigate(); // For navigation
+
   const handleGoogleLogin = async () => {
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        console.log("User Info:", user);
-        alert(`Welcome, ${user.displayName}`);
-      } catch (error) {
-        console.error("Error during login:", error);
-        alert("Failed to log in. Please try again.");
-      }
-    };
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      console.log("User Info:", user);
+      alert(`Welcome, ${user.displayName}`);
+      navigate("/home"); // Redirect to home page after login
+    } catch (error) {
+      console.error("Error during login:", error);
+      alert("Failed to log in. Please try again.");
+    }
+  };
 
   return<div style={styles.container}>
     <center>
@@ -148,7 +152,7 @@ const styles = {
 function Chat() {
 
   return <>
-  hey    
+  <HomeUi/>  
   </>;
 }
 
