@@ -11,6 +11,8 @@ import { auth, googleProvider } from "./firebaseConfig";
 import { signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import HomeUi from "./components/home/Home";
+import ChatUI from "./components/home/ChatUI";
+ChatUI
 
 function Home() {
   const handleScroll = () => {
@@ -163,6 +165,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/home" element={<Chat />} />
+        <Route path="/girlfriend-ai" element={<ChatUI />} />
+        <Route path="/friend-ai" element={<ChatUI />} />
+        <Route path="/doppelganger-ai" element={<ChatUI />} />
       </Routes>
     </Router>
   );
