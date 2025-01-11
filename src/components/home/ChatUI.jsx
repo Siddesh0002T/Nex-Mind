@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import axios from "axios"; // For making API calls
+import axios from "axios";
+import { database } from "../../firebaseConfig";
+import { ref, push, onValue } from "firebase/database";
+import { getAuth } from "firebase/auth"; // Firebase authentication
 
 const ChatUI = () => {
   const location = useLocation();
+  const auth = getAuth(); // Firebase Auth instance
+  const [userEmail, setUserEmail] = useState(null); // Store logged-in user's email
 
   // Determine the theme based on the current route
   const getTheme = () => {
@@ -14,7 +19,7 @@ const ChatUI = () => {
         header: "Girlfriend AI",
         inputBg: "bg-pink-200",
         buttonBg: "bg-red-500",
-        model: "girlfriend-ai", // Model identifier for API
+        model: "girlfriend-ai",
       };
     } else if (location.pathname === "/friend-ai") {
       return {
@@ -23,7 +28,7 @@ const ChatUI = () => {
         header: "Friend AI",
         inputBg: "bg-blue-200",
         buttonBg: "bg-green-500",
-        model: "friend-ai", // Model identifier for API
+        model: "friend-ai",
       };
     } else if (location.pathname === "/doppelganger-ai") {
       return {
@@ -32,7 +37,7 @@ const ChatUI = () => {
         header: "Doppelgänger AI",
         inputBg: "bg-gray-600",
         buttonBg: "bg-gray-800",
-        model: "doppelganger-ai", // Model identifier for API
+        model: "doppelganger-ai",
       };
     }
     return {
@@ -41,7 +46,7 @@ const ChatUI = () => {
       header: "Chat AI",
       inputBg: "bg-gray-100",
       buttonBg: "bg-gray-300",
-      model: "default-ai", // Default model identifier
+      model: "default-ai",
     };
   };
 
@@ -49,39 +54,79 @@ const ChatUI = () => {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false); // For showing a loading indicator
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Get the logged-in user's email
+    const user = auth.currentUser;
+    if (user) {
+      const emailKey = user.email.replace(/\./g, "_"); // Replace '.' with '_'
+      setUserEmail(emailKey);
+      fetchChatHistory(emailKey); // Fetch chat history for the user
+    }
+  }, [auth]);
+
+  const fetchChatHistory = (emailKey) => {
+    const chatRef = ref(database, `chats/${emailKey}`);
+    onValue(chatRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const chatHistory = Object.values(data);
+        setMessages(chatHistory);
+      }
+    });
+  };
 
   const handleSendMessage = async () => {
-    if (input.trim()) {
+    if (input.trim() && userEmail) {
+      const userMessage = { text: input, sender: "user" };
+
       // Add the user's message to the chat
-      setMessages([...messages, { text: input, sender: "user" }]);
+      setMessages([...messages, userMessage]);
       setInput("");
       setLoading(true);
+
+      // Save the user's message to Firebase
+      saveMessageToFirebase(userMessage);
 
       try {
         // Make API call to the Flask backend
         const response = await axios.post("http://localhost:5000/api/chat", {
           message: input,
-          model: theme.model, // Send the model identifier
+          model: theme.model,
         });
 
-        const aiResponse = response.data.response;
-        const audioUrl = response.data.audio_url;
+        const aiResponse = {
+          text: response.data.response,
+          sender: "ai",
+          audioUrl: response.data.audio_url,
+        };
 
         // Add the AI's response to the chat
-        setMessages((prev) => [
-          ...prev,
-          { text: aiResponse, sender: "ai", audioUrl },
-        ]);
+        setMessages((prev) => [...prev, aiResponse]);
+
+        // Save the AI's response to Firebase
+        saveMessageToFirebase(aiResponse);
       } catch (error) {
         console.error("Error communicating with AI:", error);
-        setMessages((prev) => [
-          ...prev,
-          { text: "Error: Unable to connect to AI.", sender: "ai" },
-        ]);
+        const errorMessage = {
+          text: "Error: Unable to connect to AI.",
+          sender: "ai",
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+
+        // Save the error message to Firebase
+        saveMessageToFirebase(errorMessage);
       } finally {
         setLoading(false);
       }
+    }
+  };
+
+  const saveMessageToFirebase = (message) => {
+    if (userEmail) {
+      const chatRef = ref(database, `chats/${userEmail}`);
+      push(chatRef, message);
     }
   };
 
