@@ -1,45 +1,152 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef } from "react";
+import { TiLocationArrow } from "react-icons/ti";
 
-const ChatList = () => {
-  const navigate = useNavigate();
+export const BentoTilt = ({ children, className = "" }) => {
+  const [transformStyle, setTransformStyle] = useState("");
+  const itemRef = useRef(null);
 
-  // Handle navigation on list item click
-  const handleChatClick = (chatType) => {
-    if (chatType === 'girlfriend') {
-      navigate('/girlfriend-ai');
-    } else if (chatType === 'friend') {
-      navigate('/friend-ai');
-    } else if (chatType === 'doppelganger') {
-      navigate('/doppelganger-ai');
-    }
+  const handleMouseMove = (event) => {
+    if (!itemRef.current) return;
+
+    const { left, top, width, height } =
+      itemRef.current.getBoundingClientRect();
+
+    const relativeX = (event.clientX - left) / width;
+    const relativeY = (event.clientY - top) / height;
+
+    const tiltX = (relativeY - 0.5) * 5;
+    const tiltY = (relativeX - 0.5) * -5;
+
+    const newTransform = `perspective(700px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(.95, .95, .95)`;
+    setTransformStyle(newTransform);
+  };
+
+  const handleMouseLeave = () => {
+    setTransformStyle("");
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-3xl font-lobster text-center text-pink-600 mb-6 animate-fadeIn">Choose Your AI Chat</h2>
-      <ul>
-        <li
-          className="flex items-center justify-center bg-pink-500 text-white text-xl py-4 px-6 rounded-xl shadow-lg mb-6 hover:bg-pink-400 hover:scale-105 cursor-pointer transition-transform duration-300 animate-bounce"
-          onClick={() => handleChatClick('girlfriend')}
-        >
-          <span className="text-3xl mr-4">❤️</span> Girlfriend AI
-        </li>
-        <li
-          className="flex items-center justify-center bg-pink-500 text-white text-xl py-4 px-6 rounded-xl shadow-lg mb-6 hover:bg-pink-400 hover:scale-105 cursor-pointer transition-transform duration-300 animate-bounce"
-          onClick={() => handleChatClick('friend')}
-        >
-          <span className="text-3xl mr-4">🤝</span> Friend AI
-        </li>
-        <li
-          className="flex items-center justify-center bg-pink-500 text-white text-xl py-4 px-6 rounded-xl shadow-lg mb-6 hover:bg-pink-400 hover:scale-105 cursor-pointer transition-transform duration-300 animate-bounce"
-          onClick={() => handleChatClick('doppelganger')}
-        >
-          <span className="text-3xl mr-4">👤</span> Doppelgänger AI
-        </li>
-      </ul>
+    <div
+      ref={itemRef}
+      className={className}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ transform: transformStyle }}
+    >
+      {children}
     </div>
   );
 };
 
-export default ChatList;
+export const BentoCard = ({ src, title, description, isAvailable }) => {
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [hoverOpacity, setHoverOpacity] = useState(0);
+  const hoverButtonRef = useRef(null);
+
+  const handleMouseMove = (event) => {
+    if (!hoverButtonRef.current) return;
+    const rect = hoverButtonRef.current.getBoundingClientRect();
+
+    setCursorPosition({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    });
+  };
+
+  const handleMouseEnter = () => setHoverOpacity(1);
+  const handleMouseLeave = () => setHoverOpacity(0);
+
+  return (
+    <div className="relative size-full">
+      <video
+        src={src}
+        loop
+        muted
+        autoPlay
+        className="absolute left-0 top-0 size-full object-cover object-center"
+      />
+      <div className="relative z-10 flex size-full flex-col justify-between p-5 text-blue-50">
+        <div>
+          <h1 className="bento-title special-font">{title}</h1>
+          {description && (
+            <p className="mt-3 max-w-64 text-xs md:text-base">{description}</p>
+          )}
+        </div>
+
+        {isAvailable && (
+          <div
+            ref={hoverButtonRef}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className="border-hsla relative flex w-fit cursor-pointer items-center gap-1 overflow-hidden rounded-full bg-black px-5 py-2 text-xs uppercase text-white/20"
+          >
+            {/* Radial gradient hover effect */}
+            <div
+              className="pointer-events-none absolute -inset-px opacity-0 transition duration-300"
+              style={{
+                opacity: hoverOpacity,
+                background: `radial-gradient(100px circle at ${cursorPosition.x}px ${cursorPosition.y}px, #656fe288, #00000026)`,
+              }}
+            />
+            <TiLocationArrow className="relative z-20" />
+            <p className="relative z-20">available</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const Features = () => (
+  <section id="models" className="bg-black pb-10">
+    <div className="container mx-auto px-3 md:px-10 t-5vw">
+      <div className="px-5 py-10">
+        <p className="font-circular-web text-3xl text-blue-50 text-center">Choose Model</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <BentoTilt className="border-hsla h-60 w-full overflow-hidden rounded-md">
+          <BentoCard
+            src="videos/feature-1.mp4"
+            title={
+              <>
+                Girlfrie<b>n</b>d AI
+              </>
+            }
+            
+            isAvailable
+          />
+        </BentoTilt>
+
+        <BentoTilt className="border-hsla h-60 w-full overflow-hidden rounded-md">
+          <BentoCard
+            src="videos/feature-2.mp4"
+            title={
+              <>
+                Doppelgäng<b>e</b>r AI
+              </>
+            }
+            
+            isAvailable
+          />
+        </BentoTilt>
+
+        <BentoTilt className="border-hsla h-60 w-full overflow-hidden rounded-md">
+          <BentoCard
+            src="videos/feature-3.mp4"
+            title={
+              <>
+                Fri<b>e</b>nd AI
+              </>
+            }
+            
+            isAvailable
+          />
+        </BentoTilt>
+      </div>
+    </div>
+  </section>
+);
+
+export default Features;
