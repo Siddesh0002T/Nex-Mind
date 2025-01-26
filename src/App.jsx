@@ -98,6 +98,7 @@ function Home() {
   );
 }
 
+
 function Auth() {
 
   const navigate = useNavigate(); // For navigation
