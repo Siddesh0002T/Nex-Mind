@@ -33,28 +33,30 @@ function HomeUi() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-200 to-purple-100 text-gray-800 flex flex-col items-center justify-center p-6 space-y-6 font-poppins">
+    <div className="min-h-screen bg-black text-gray-800 font-poppins">
       {user ? (
         <>
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-semibold text-white">
-              Welcome, {user.displayName}!
-            </h1>
+          <div className="fixed top-0 left-0 right-0 flex items-center justify-between w-full p-4 bg-transparent">
+            <div className="flex items-center space-x-4">
+              <img src={user.photoURL} alt="User Profile" className="w-10 h-10 rounded-full" />
+              <h1 className="text-2xl font-semibold text-white">
+                Hey! {user.displayName}
+              </h1>
+            </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg shadow-md transition-all duration-300"
+              className="text-white font-bold"
             >
               Logout
             </button>
           </div>
-          <p className="text-lg text-white">You are logged in with {user.email}.</p>
+          
+          {/* Chat List Component */}
+          <ChatList />
         </>
       ) : (
-        <p className="text-2xl font-semibold text-white">Loading...</p>
+        <p className="text-2xl font-semibold text-white flex justify-center items-center h-full">Loading...</p>
       )}
-
-      {/* Chat List Component */}
-      <ChatList />
     </div>
   );
 }
