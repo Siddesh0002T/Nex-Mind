@@ -3,14 +3,20 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { database } from "../../firebaseConfig";
 import { ref, push, onValue } from "firebase/database";
-import { getAuth } from "firebase/auth"; // Firebase authentication
+import { getAuth } from "firebase/auth";
 
 const ChatUI = () => {
   const location = useLocation();
-  const auth = getAuth(); // Firebase Auth instance
-  const [userEmail, setUserEmail] = useState(null); // Store logged-in user's email
+  const auth = getAuth();
+  const [userEmail, setUserEmail] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [speechRecognition, setSpeechRecognition] = useState(null);
+  const [speechSynthesis, setSpeechSynthesis] = useState(window.speechSynthesis);
 
-  // Determine the theme based on the current route
+  // Theme configuration based on route
   const getTheme = () => {
     if (location.pathname === "/girlfriend-ai") {
       return {
@@ -52,18 +58,19 @@ const ChatUI = () => {
 
   const theme = getTheme();
 
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-
   useEffect(() => {
-    // Get the logged-in user's email
     const user = auth.currentUser;
     if (user) {
-      const emailKey = user.email.replace(/\./g, "_"); // Replace '.' with '_'
+      const emailKey = user.email.replace(/\./g, "_");
       setUserEmail(emailKey);
-      fetchChatHistory(emailKey); // Fetch chat history for the user
+      fetchChatHistory(emailKey);
     }
+    // Initialize Speech Recognition API
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    setSpeechRecognition(recognition);
   }, [auth]);
 
   const fetchChatHistory = (emailKey) => {
@@ -77,52 +84,6 @@ const ChatUI = () => {
     });
   };
 
-  const handleSendMessage = async () => {
-    if (input.trim() && userEmail) {
-      const userMessage = { text: input, sender: "user" };
-
-      // Add the user's message to the chat
-      setMessages([...messages, userMessage]);
-      setInput("");
-      setLoading(true);
-
-      // Save the user's message to Firebase
-      saveMessageToFirebase(userMessage);
-
-      try {
-        // Make API call to the Flask backend
-        const response = await axios.post("http://localhost:5000/api/chat", {
-          message: input,
-          model: theme.model,
-        });
-
-        const aiResponse = {
-          text: response.data.response,
-          sender: "ai",
-          audioUrl: response.data.audio_url,
-        };
-
-        // Add the AI's response to the chat
-        setMessages((prev) => [...prev, aiResponse]);
-
-        // Save the AI's response to Firebase
-        saveMessageToFirebase(aiResponse);
-      } catch (error) {
-        console.error("Error communicating with AI:", error);
-        const errorMessage = {
-          text: "Error: Unable to connect to AI.",
-          sender: "ai",
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-
-        // Save the error message to Firebase
-        saveMessageToFirebase(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   const saveMessageToFirebase = (message) => {
     if (userEmail) {
       const chatRef = ref(database, `chats/${userEmail}`);
@@ -130,22 +91,67 @@ const ChatUI = () => {
     }
   };
 
+  const handleSendMessage = async (message) => {
+    const userMessage = { text: message, sender: "user" };
+    setMessages([...messages, userMessage]);
+    setLoading(true);
+    saveMessageToFirebase(userMessage);
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/chat", {
+        message,
+        model: theme.model,
+      });
+      const aiResponse = {
+        text: response.data.response,
+        sender: "ai",
+        audioUrl: response.data.audio_url,
+      };
+      setMessages((prev) => [...prev, aiResponse]);
+      saveMessageToFirebase(aiResponse);
+
+      // Play AI's response audio
+      const utterance = new SpeechSynthesisUtterance(aiResponse.text);
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error("Error communicating with AI:", error);
+      const errorMessage = { text: "Error: Unable to connect to AI.", sender: "ai" };
+      setMessages((prev) => [...prev, errorMessage]);
+      saveMessageToFirebase(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCall = () => {
+    setIsCalling(true);
+    speechRecognition.start();
+
+    speechRecognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0].transcript)
+        .join("");
+      if (event.results[0].isFinal) {
+        handleSendMessage(transcript);
+      }
+    };
+  };
+
+  const handleEndCall = () => {
+    setIsCalling(false);
+    speechRecognition.stop();
+  };
+
   return (
     <div className={`${theme.bg} ${theme.text} min-h-screen flex flex-col`}>
-      {/* Header */}
-      <div className="p-4 text-center text-2xl font-bold shadow-md">
-        {theme.header}
-      </div>
+      <div className="p-4 text-center text-2xl font-bold shadow-md">{theme.header}</div>
 
-      {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <div
             key={index}
             className={`${
-              message.sender === "user"
-                ? "text-right"
-                : "text-left text-gray-800"
+              message.sender === "user" ? "text-right" : "text-left text-gray-800"
             }`}
           >
             <div
@@ -174,25 +180,33 @@ const ChatUI = () => {
         )}
       </div>
 
-      {/* Input Area */}
-      <div
-        className={`p-4 flex items-center space-x-4 ${theme.inputBg} shadow-md`}
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1 p-2 rounded-lg border border-gray-300 focus:outline-none"
-        />
-        <button
-          onClick={handleSendMessage}
-          className={`px-4 py-2 rounded-lg ${theme.buttonBg} text-white`}
-          disabled={loading}
-        >
-          {loading ? "Sending..." : "Send"}
-        </button>
-      </div>
+      {isCalling ? (
+        <div className="p-4 flex items-center space-x-4 bg-red-200 shadow-md">
+          <button onClick={handleEndCall} className="px-4 py-2 bg-red-500 text-white rounded-lg">
+            End Call
+          </button>
+        </div>
+      ) : (
+        <div className={`p-4 flex items-center space-x-4 ${theme.inputBg} shadow-md`}>
+          <button onClick={handleCall} className={`px-4 py-2 rounded-lg ${theme.buttonBg} text-white`}>
+            Call
+          </button>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1 p-2 rounded-lg border border-gray-300 focus:outline-none"
+          />
+          <button
+            onClick={() => handleSendMessage(input)}
+            className={`px-4 py-2 rounded-lg ${theme.buttonBg} text-white`}
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Send"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
