@@ -44,7 +44,7 @@ const FloatingImage = () => {
 
   return (
     <div className="flex flex-col justify-center items-center h-screen bg-[#080808] pt-[2vw] overflow-hidden">
-      <p className="font-general text-sm uppercase text-white mb-20">Girlfriend</p>
+      <p className="font-general text-sm uppercase text-white mb-20">BestFriend</p>
 
       <div className="absolute z-30 pb-[31vw] pl-[36vw] text-white text-opacity-80">You</div>
       <div className="absolute z-30 pb-[17vw] pr-[30vw] text-white text-opacity-80">NexMind</div>
@@ -103,7 +103,7 @@ const FloatingImage = () => {
               onMouseLeave={handleMouseLeave}
               onMouseUp={handleMouseLeave}
               onMouseEnter={handleMouseLeave}
-              src="/img/AnimeBg.jpg"
+              src="/img/Bestfriend.jpg"
               alt="entrance.webp"
               className="object-contain"
               style={{ position: "relative", zIndex: 1 ,opacity: 0.5 }}
