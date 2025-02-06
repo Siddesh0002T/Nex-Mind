@@ -1,137 +1,76 @@
-import React, { useRef } from "react";
-import gsap from "gsap";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 
-const FloatingImage = () => {
-  const frameRef = useRef(null);
+const ChatUI = ({ modelName, aiType, bgImage }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const chatRef = useRef(null);
 
-  const handleMouseMove = (e) => {
-    const { clientX, clientY } = e;
-    const element = frameRef.current;
+  useEffect(() => {
+    chatRef.current?.scrollTo(0, chatRef.current.scrollHeight);
+  }, [messages]);
 
-    if (!element) return;
+  const sendMessage = async () => {
+    if (input.trim() === "") return;
 
-    const rect = element.getBoundingClientRect();
-    const xPos = clientX - rect.left;
-    const yPos = clientY - rect.top;
+    const newMessages = [...messages, { sender: "You", text: input }];
+    setMessages(newMessages);
+    setInput("");
 
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const rotateX = ((yPos - centerY) / centerY) * -10;
-    const rotateY = ((xPos - centerX) / centerX) * 10;
-
-    gsap.to(element, {
-      duration: 0.3,
-      rotateX,
-      rotateY,
-      transformPerspective: 500,
-      ease: "power1.inOut",
-    });
-  };
-
-  const handleMouseLeave = () => {
-    const element = frameRef.current;
-
-    if (element) {
-      gsap.to(element, {
-        duration: 0.3,
-        rotateX: 0,
-        rotateY: 0,
-        ease: "power1.inOut",
+    try {
+      const response = await axios.post("http://localhost:5000/api/chat", {
+        message: input,
+        type: aiType,
       });
+
+      if (response.data.response) {
+        setMessages([...newMessages, { sender: modelName, text: response.data.response }]);
+      } else {
+        setMessages([...newMessages, { sender: modelName, text: "No response from AI." }]);
+      }
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+      setMessages([...newMessages, { sender: modelName, text: "Error connecting to AI." }]);
     }
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-[#080808] pt-[2vw] overflow-hidden">
-      <p className="font-general text-sm uppercase text-white mb-20">Girlfriend</p>
-
-      <div className="absolute z-30 pb-[31vw] pl-[36vw] text-white text-opacity-80">You</div>
-      <div className="absolute z-30 pb-[17vw] pr-[30vw] text-white text-opacity-80">NexMind</div>
-
-      <div className="story-img-container relative">
-        {/* White Rectangle */}
-        <div
-          style={{
-            position: "absolute",
-            top: "5vh",
-            left: "70vw",
-            width: "10vw",
-            height: "8vh",
-            backgroundColor: "rgba(255, 255, 255, 0.7)",
-            zIndex: 2,
-            borderRadius: "30px",
-            
-          }}
-        >
-
-          <div className="text-black p-4">Hey NexMind, <br />How You doing?</div>
-
+    <div
+      className="min-h-screen flex flex-col items-center justify-center bg-gray-900"
+      style={{ background: `url(${bgImage}) center/cover no-repeat` }}
+    >
+      <div className="w-full max-w-lg h-[85vh] flex flex-col bg-white/90 rounded-lg shadow-lg backdrop-blur-md overflow-hidden border border-gray-300">
+        <div className="p-4 bg-gray-800 text-white text-center text-lg font-semibold">
+          {modelName}
         </div>
-
-        
-
-        {/* White Rectangle */}
-
-        <div
-          style={{
-            position: "absolute",
-            bottom: "60vh",
-            right: "68vw",
-            width: "10vw",
-            height: "8vh",
-            backgroundColor: "rgba(0,0,0, 0.7)",
-            zIndex: 2,
-            borderRadius: "30px",
-            
-            
-          }}
-        >
-
-          <div className="text-White p-4">Hello Suyash, <br />I'm Good</div>
-
+        <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+          {messages.map((msg, index) => (
+            <div key={index} className={`flex ${msg.sender === "You" ? "justify-end" : "justify-start"}`}>
+              <div className={`rounded-lg px-4 py-2 max-w-[75%] text-sm ${msg.sender === "You" ? "bg-blue-500 text-white rounded-br-none" : "bg-gray-300 text-black rounded-bl-none"}`}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
         </div>
-
-        
-        
-    
-        <div className="story-img-mask">
-          <div className="story-img-content">
-            <img
-              ref={frameRef}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseLeave}
-              onMouseEnter={handleMouseLeave}
-              src="/img/AnimeBg.jpg"
-              alt="entrance.webp"
-              className="object-contain"
-              style={{ position: "relative", zIndex: 1 ,opacity: 0.5 }}
-            />
-          </div>
+        <div className="p-3 border-t border-gray-300 bg-white flex items-center">
+          <input
+            type="text"
+            className="flex-1 px-4 py-2 text-sm border rounded-full outline-none focus:ring-2 focus:ring-blue-400"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message..."
+          />
+          <button className="ml-2 bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700" onClick={sendMessage}>
+            Send
+          </button>
         </div>
-        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 w-[30vw] rounded-[50px] bg-[#252525] p-2 flex items-center justify-between">
-  <input
-    type="text"
-    placeholder="Message..."
-    className="bg-[#252525] text-white placeholder:text-[#] focus:outline-none rounded-full px-4 py-2 flex-grow"
-  />
-  <button className="bg-[#252525] text-[#999999] px-4 py-2 rounded-full ml-2">Send</button>
-</div>
-
-
-
-
       </div>
     </div>
   );
 };
-const ChatUI = () => {
-  return (
-    <div className="bg-black text-white h-screen">
-      <FloatingImage /> {/* Floating image with animation */}
-    </div>
-  );
-};
+
+export const GFChat = () => <ChatUI modelName="Girlfriend AI" aiType="girlfriend-ai" bgImage="/img/gf-bg.jpg" />;
+export const BFChat = () => <ChatUI modelName="Best Friend AI" aiType="friend-ai" bgImage="/img/bf-bg.jpg" />;
+export const DGChat = () => <ChatUI modelName="Doppelganger AI" aiType="doppelganger-ai" bgImage="/img/dg-bg.jpg" />;
 
 export default ChatUI;
