@@ -84,27 +84,33 @@ const ChatUI = () => {
   }, [messages]);
 
   return (
-    <div className="relative h-screen w-full text-white flex flex-col">
-      {/* Background Shape (Trapezoidal) */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url(/img/AnimeBg.jpg)`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          zIndex: -1,
-        }}
-      />
+    <div className="relative h-screen w-full text-white flex flex-col ">
+     {/* Background Image with Opacity */}
+<div className="absolute inset-0">
+  <div
+    className="absolute inset-0"
+    style={{
+      backgroundImage: `url(/img/AnimeBg.jpg)`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      opacity: 0.8, // Adjust the opacity (0.1 to 1)
+      zIndex: -2,
+    }}
+  />
+  {/* Dark Overlay for Better Visibility */}
+  <div className="absolute inset-0 bg-black bg-opacity-50 z-[-1]" />
+</div>
+
 
       {/* Navbar with Girlfriend's Name */}
-      <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-70 py-4 text-center z-10">
-        <h1 className="text-2xl font-bold text-white">Girlfriend</h1>
+      <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-0 py-4 text-center z-10">
+        <h1 className=" text-white  text-md font-bold special-font" >Girlfriend</h1>
       </div>
 
       {/* Chat Messages (Flowing Downward) */}
       <div
         ref={chatContainerRef}
-        className="flex flex-col flex-grow overflow-y-auto pt-20 pb-24 px-4 relative z-10"
+        className="flex flex-col flex-grow overflow-y-auto pt-20 pb-24 px-4 relative z-10 font-general text-sm"
         style={{
           maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
@@ -116,7 +122,7 @@ const ChatUI = () => {
             className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
           >
             {msg.sender === "ai" && (
-              <span className="text-white font-bold mr-2">AI</span>
+              <span className="text-white  mr-2">AI</span>
             )}
 
             <div
@@ -130,7 +136,7 @@ const ChatUI = () => {
             </div>
 
             {msg.sender === "user" && (
-              <span className="text-white font-bold ml-2">You</span>
+              <span className="text-white  ml-2">You</span>
             )}
           </div>
         ))}
@@ -151,24 +157,28 @@ const ChatUI = () => {
       </div>
 
       {/* Input Box and Send Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-20 p-4 z-30">
-        <div className="flex items-center rounded-lg bg-black bg-opacity-30 p-2">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="flex-1 bg-transparent text-white outline-none p-2"
-          />
-          <button
-            onClick={handleSendMessage}
-            className="bg-white bg-opacity-20 text-white rounded-lg px-4 py-2 hover:bg-opacity-30 transition"
-          >
-            Send
-          </button>
-        </div>
-      </div>
+      <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-0 p-4 z-30">
+  <div className="flex justify-center">
+  <div className="flex items-center w-[80%] md:w-[50%] lg:w-[40%] xl:w-[30%] rounded-full bg-black bg-opacity-50 p-2">
+  <input
+    type="text"
+    value={inputValue}
+    onChange={(e) => setInputValue(e.target.value)}
+    onKeyPress={handleKeyPress}
+    placeholder="Type a message..."
+    className="flex-1 bg-transparent text-white outline-none p-2 w-full rounded-full"
+  />
+  <button
+    onClick={handleSendMessage}
+    className="bg-white bg-opacity-20 text-white rounded-full px-4 py-2 hover:bg-opacity-30 transition"
+  >
+    Send
+  </button>
+</div>
+
+  </div>
+</div>
+
     </div>
   );
 };
