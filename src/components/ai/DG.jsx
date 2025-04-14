@@ -3,38 +3,25 @@ import React, { useState, useEffect, useRef } from "react";
 const DG = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false); // Track typing animation
-  const API_URL = "http://localhost:5000/api/chat"; // Flask API URL
-  const chatContainerRef = useRef(null); // Ref for the chat container
+  const [isTyping, setIsTyping] = useState(false);
+  const API_URL = "http://localhost:5000/api/chat";
+  const chatContainerRef = useRef(null);
 
-  // Random responses for when the API is offline
   const randomResponses = [
     "Hey man, caught up with some stuff right now. I'll hit you up when I’m free! 👊",
-    "Dude, I’m swamped at the moment. Let’s catch up soon—don’t go too far! 😂",
-    "Yo, busy right now but keep your phone close, I’ll ping you later! 📱",
-    "Stuck with work/study stuff right now. Let’s hang when I’m done! 🙌",
-    "Can’t chat at the moment, but don’t make any wild plans without me! 😜",
-    "Adulting is attacking me today, I’ll be free after I survive this. Send snacks. 🍕😂",
-    "Busy being responsible…who signed me up for this?! I’ll be back soon, bro! 😩",
-    "Currently drowning in tasks, send a lifeboat or a meme, whichever is faster. 🚤🤣",
-    "If you hear silence from me, it’s not a ghosting—it’s work haunting me. 👻💼",
-    "Can’t talk right now, too busy pretending to be productive. 😅 Catch you later!",
-    "Hey! Swamped with work/study right now, but I’ll make time for you soon! 👍",
-    "Busy for now, but our hangout is next on my list. Keep your schedule open! 🎉",
-    "Can’t chat at the moment—hold the fun for when I’m back! You know it’s better together. 😉",
-    "Occupied right now, but I’m still here for you. We’ll catch up soon! 🤜🤛",
-    "I know you’re free and I’m not, but I’ll join the fun as soon as I can. Save me a spot! 🕺",
+    // more responses...
   ];
 
-  // Function to handle sending a message
   const handleSendMessage = async () => {
     if (inputValue.trim() === "") return;
 
-    const newMessage = { id: messages.length + 1, text: inputValue, sender: "user" };
+    const newMessage = {
+      id: messages.length + 1,
+      text: inputValue,
+      sender: "user",
+    };
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
-
-    // Simulate typing animation
     setIsTyping(true);
 
     try {
@@ -45,47 +32,69 @@ const DG = () => {
       });
 
       const data = await response.json();
-      if (data.response) {
-        // Simulate typing delay
-        setTimeout(() => {
-          setIsTyping(false);
-          setMessages((prev) => [
-            ...prev,
-            { id: prev.length + 1, text: data.response, sender: "ai" },
-          ]);
-        }, 1500); // 1.5 seconds delay
-      }
-    } catch (error) {
-      console.error("Error fetching AI response:", error);
-      // If API fails, send a random response
+
       setTimeout(() => {
         setIsTyping(false);
-        const randomResponse = randomResponses[Math.floor(Math.random() * randomResponses.length)];
+        if (data.messages) {
+          setMessages((prev) => [
+            ...prev,
+            ...data.messages.map((msg, index) => ({
+              id: prev.length + index + 1,
+              text: msg.message,
+              sender: msg.sender,
+              isImage: isImageUrl(msg.message),
+            })),
+          ]);
+        } else if (data.response) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: prev.length + 1,
+              text: data.response,
+              sender: "ai",
+              isImage: isImageUrl(data.response),
+            },
+          ]);
+        }
+      }, 1500);
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+      setTimeout(() => {
+        setIsTyping(false);
+        const randomResponse =
+          randomResponses[Math.floor(Math.random() * randomResponses.length)];
         setMessages((prev) => [
           ...prev,
-          { id: prev.length + 1, text: randomResponse, sender: "ai" },
+          {
+            id: prev.length + 1,
+            text: randomResponse,
+            sender: "ai",
+            isImage: false,
+          },
         ]);
-      }, 1500); // 1.5 seconds delay
+      }, 1500);
     }
   };
 
-  // Handle Enter key press
+  const isImageUrl = (url) => {
+    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSendMessage();
     }
   };
 
-  // Scroll to the bottom of the chat container when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
   return (
     <div className="relative h-screen w-full text-white flex flex-col">
-      {/* Background Shape (Trapezoidal) */}
       <div
         className="absolute inset-0"
         style={{
@@ -96,26 +105,28 @@ const DG = () => {
         }}
       />
 
-      {/* Navbar with BestFriend's Name */}
       <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-70 py-4 text-center z-10">
-        <h1 className="text-2xl font-bold text-white">BestFriend</h1>
+        <h1 className="text-2xl font-bold text-white">Doppelganger</h1>
       </div>
 
-      {/* Chat Messages (Flowing Downward) */}
       <div
         ref={chatContainerRef}
         className="flex flex-col flex-grow overflow-y-auto pt-20 pb-24 px-4 relative z-10"
         style={{
-          maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
         }}
       >
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
+            className={`flex ${
+              msg.sender === "user" ? "justify-end" : "justify-start"
+            } mb-2`}
           >
-            {msg.sender === "ai" && (
+            {msg.sender === "ai" && !msg.isImage && (
               <span className="text-white font-bold mr-2">AI</span>
             )}
 
@@ -126,7 +137,15 @@ const DG = () => {
                   : "bg-black bg-opacity-50 text-white"
               }`}
             >
-              {msg.text}
+              {msg.isImage ? (
+                <img
+                  src={msg.text}
+                  alt="AI Response"
+                  className="rounded-xl w-full"
+                />
+              ) : (
+                msg.text
+              )}
             </div>
 
             {msg.sender === "user" && (
@@ -135,7 +154,6 @@ const DG = () => {
           </div>
         ))}
 
-        {/* Typing Animation */}
         {isTyping && (
           <div className="flex justify-start mb-2">
             <span className="text-white font-bold mr-2">AI</span>
@@ -150,7 +168,6 @@ const DG = () => {
         )}
       </div>
 
-      {/* Input Box and Send Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-20 p-4 z-30">
         <div className="flex items-center rounded-lg bg-black bg-opacity-30 p-2">
           <input
