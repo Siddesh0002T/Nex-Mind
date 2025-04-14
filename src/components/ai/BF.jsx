@@ -4,7 +4,7 @@ const BF = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false); // Track typing animation
-  const API_URL = "http://localhost:5000/api/chat"; // Flask API URL
+  const API_URL = "https://scriptai-4vkc.onrender.com/api/chat"; // Flask API URL
   const chatContainerRef = useRef(null); // Ref for the chat container
 
   // Random responses for when the API is offline
