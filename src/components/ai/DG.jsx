@@ -4,7 +4,7 @@ const DG = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const API_URL = "https://scriptai-4vkc.onrender.com/api/chat";
+  const API_URL = "https://be8d-2409-40c2-6053-ce31-c8db-46e3-c3ea-508f.ngrok-free.app/api/chat";
   const chatContainerRef = useRef(null);
 
   const randomResponses = [
