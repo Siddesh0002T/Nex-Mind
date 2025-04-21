@@ -107,16 +107,22 @@ const FloatingImage = () => {
             </p>
 
             <Button
-              id="realm-btn"
-              title="Begin Your Journey"
-              containerClass="mt-5"
-              onClick={() => navigate('/home')} // Using React Router for navigation
-            />
+  id="realm-btn"
+  title="Begin Your Journey"
+  containerClass="mt-5"
+  onClick={() => {
+    const featureSection = document.getElementById("models");
+    if (featureSection) {
+      featureSection.scrollIntoView({ behavior: "smooth" });
+    }
+  }}
+/>
+
           </div>
         </div>
       </div>
     </div>
   );
-};
+};  
 
 export default FloatingImage;

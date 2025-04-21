@@ -146,7 +146,7 @@ const DG = () => {
   return (
     <div className="relative h-screen w-full text-white flex flex-col">
       {/* Background */}
-      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: `url(/img/Doppelagnger.jpg)` }} />
+      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: `url(/img/dp.jpg)` }} />
 
       {/* Top Bar */}
       <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-0 py-4 text-center z-10">

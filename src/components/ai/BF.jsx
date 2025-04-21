@@ -108,7 +108,7 @@ const BF = () => {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(/img/entrance.jpg)`,
+            backgroundImage: `url(/img/bf.jpg)`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             opacity: 0.8,
