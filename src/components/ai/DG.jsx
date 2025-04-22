@@ -150,13 +150,13 @@ const DG = () => {
 
       {/* Top Bar */}
       <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-0 py-4 text-center z-10">
-        <h1 className="text-white text-md font-bold special-font">Doppelganger</h1>
+        <h1 className="text-white text-md font-bold special-font font-bold special-font">Doppelganger</h1>
       </div>
 
       {/* Chat Body */}
       <div
         ref={chatContainerRef}
-        className="flex flex-col flex-grow overflow-y-auto pt-20 pb-24 px-4 relative z-10 text-sm"
+        className="flex flex-col flex-grow overflow-y-auto pt-20 pb-24 px-4 relative z-10 text-sm font-general"
         style={{
           maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",

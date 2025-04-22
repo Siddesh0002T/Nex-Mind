@@ -144,7 +144,7 @@ const BF = () => {
             >
               {msg.text}
             </div>
-            {msg.sender === "user" && <span className="text-white ml-2">You</span>}
+            {msg.sender === "user" && <span className="text-white ml-2 font-bold mr-2">You</span>}
           </div>
         ))}
 
